@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EMCD Luxury Wheel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-0: #040208;
+      --bg-1: #0a0513;
+      --bg-2: #140923;
+      --bg-3: #1e0e34;
+      --white: #ffffff;
+      --muted: rgba(255,255,255,0.76);
+      --btn1: #7c3dff;
+      --btn2: #a367ff;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: 'Sora', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 50% -12%, rgba(156, 102, 255, 0.28), transparent 30%),
+        radial-gradient(circle at 10% 82%, rgba(115, 45, 255, 0.15), transparent 26%),
+        radial-gradient(circle at 90% 18%, rgba(89, 31, 209, 0.12), transparent 28%),
+        linear-gradient(180deg, var(--bg-0), var(--bg-1) 30%, var(--bg-2) 65%, var(--bg-3));
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 44px 44px;
+      opacity: 0.18;
+      pointer-events: none;
+      mask-image: radial-gradient(circle at center, rgba(0,0,0,0.95), transparent 88%);
+    }
+
+    .page {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 28px 16px 34px;
+    }
+
+    .wrap {
+      width: min(96vw, 820px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 22px;
+    }
+
+    .wheel-stage {
+      position: relative;
+      width: min(92vw, 610px);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      isolation: isolate;
+    }
+
+    .aura {
+      position: absolute;
+      inset: 5%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(136, 77, 255, 0.28), rgba(136, 77, 255, 0.10) 36%, rgba(136, 77, 255, 0) 68%);
+      filter: blur(22px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 19px solid transparent;
+      border-right: 19px solid transparent;
+      border-top: 34px solid #ffffff;
+      z-index: 12;
+      filter: drop-shadow(0 10px 16px rgba(0,0,0,0.5));
+    }
+
+    .frame {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      z-index: 1;
+      background:
+        radial-gradient(circle at 50% 20%, rgba(255,255,255,0.10), transparent 33%),
+        linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.015));
+      box-shadow:
+        0 36px 86px rgba(0,0,0,0.48),
+        inset 0 0 0 2px rgba(255,255,255,0.10),
+        inset 0 0 0 18px rgba(7, 4, 14, 0.68),
+        inset 0 0 0 36px rgba(255,255,255,0.03);
+      overflow: hidden;
+    }
+
+    .frame::before {
+      content: '';
+      position: absolute;
+      inset: 18px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.05);
+      pointer-events: none;
+    }
+
+    .stud-ring {
+      position: absolute;
+      inset: 12px;
+      border-radius: 50%;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .stud {
+      position: absolute;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      left: 50%;
+      top: 50%;
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.92), rgba(215,222,255,0.40) 42%, rgba(255,255,255,0.12) 72%, rgba(255,255,255,0.04));
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 3px 8px rgba(0,0,0,0.25);
+      transform-origin: center;
+    }
+
+    .wheel {
+      position: relative;
+      width: calc(100% - 30px);
+      height: calc(100% - 30px);
+      border-radius: 50%;
+      overflow: hidden;
+      z-index: 3;
+      box-shadow: inset 0 0 0 8px rgba(255,255,255,0.12), inset 0 -22px 34px rgba(0,0,0,0.24);
+      background: #2b125d;
+    }
+
+    .segments-layer,
+    .labels-layer {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      transition: transform 6s cubic-bezier(0.14, 0.96, 0.18, 1);
+      will-change: transform;
+    }
+
+    .segments-layer { z-index: 1; overflow: hidden; }
+    .labels-layer { z-index: 5; pointer-events: none; }
+
+    .segment {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+
+    .segment::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 18%, rgba(255,255,255,0.08), rgba(255,255,255,0) 44%);
+      mix-blend-mode: screen;
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .divider {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 2px;
+      height: 50%;
+      transform-origin: center top;
+      background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(255,255,255,0));
+      opacity: 0.22;
+      z-index: 4;
+    }
+
+    .segment-label {
+      position: absolute;
+      z-index: 5;
+      width: 126px;
+      height: 54px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.04;
+      letter-spacing: -0.02em;
+      text-shadow: 0 3px 10px rgba(0,0,0,0.34);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(7px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.06);
+      transform: translate(-50%, -50%);
+      transform-origin: center center;
+      will-change: transform;
+    }
+
+    .hub-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 37%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(154,96,255,0.22), rgba(154,96,255,0.05) 60%, transparent 70%);
+      z-index: 6;
+      pointer-events: none;
+    }
+
+    .hub {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 29%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      z-index: 7;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 50% 24%, rgba(255,255,255,0.13), rgba(255,255,255,0.03) 28%, rgba(12,8,20,0.99) 64%),
+        linear-gradient(180deg, #180d2d, #08040f);
+      border: 2px solid rgba(255,255,255,0.11);
+      box-shadow:
+        0 18px 40px rgba(0,0,0,0.46),
+        inset 0 0 28px rgba(156, 96, 255, 0.18),
+        inset 0 0 0 8px rgba(255,255,255,0.03);
+      overflow: hidden;
+    }
+
+    .hub::before {
+      content: '';
+      position: absolute;
+      inset: 10%;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.07);
+      pointer-events: none;
+    }
+
+    .hub::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), transparent 34%);
+      pointer-events: none;
+    }
+
+    .brand {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand img {
+      width: 70%;
+      height: auto;
+      display: block;
+      filter: brightness(1.1) drop-shadow(0 7px 10px rgba(0,0,0,0.28));
+    }
+
+    .brand-badge {
+      padding: 6px 11px 5px;
+      border-radius: 999px;
+      font-size: clamp(9px, 0.8vw, 11px);
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.74);
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(8px);
+    }
+
+    .controls {
+      width: min(92vw, 360px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .spin-btn {
+      width: 100%;
+      appearance: none;
+      border: 0;
+      border-radius: 18px;
+      padding: 18px 24px;
+      font-family: inherit;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #fff;
+      cursor: pointer;
+      background: linear-gradient(90deg, var(--btn1), var(--btn2));
+      box-shadow: 0 20px 40px rgba(112, 57, 255, 0.32), inset 0 1px 0 rgba(255,255,255,0.14);
+      transition: transform 0.18s ease, filter 0.18s ease, opacity 0.18s ease;
+    }
+
+    .spin-btn:hover { transform: translateY(-1px); filter: brightness(1.04); }
+    .spin-btn:active { transform: translateY(1px); }
+    .spin-btn:disabled { opacity: 0.62; cursor: default; transform: none; }
+
+    .result {
+      min-height: 26px;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      color: rgba(255,255,255,0.96);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(7, 4, 15, 0.72);
+      backdrop-filter: blur(10px);
+      z-index: 30;
+    }
+    .modal.open { display: flex; }
+
+    .card {
+      width: min(430px, 100%);
+      border-radius: 26px;
+      padding: 28px 22px 22px;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(25, 15, 47, 0.98), rgba(8, 5, 16, 0.98));
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 30px 72px rgba(0,0,0,0.50);
+    }
+
+    .card img { width: 126px; height: auto; display: block; margin: 0 auto 14px; }
+    .card h2 { margin: 0 0 12px; font-size: clamp(28px, 5vw, 36px); line-height: 1; font-weight: 800; }
+    .prize { display: flex; align-items: center; justify-content: center; min-height: 62px; margin-bottom: 16px; padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); font-size: clamp(22px, 4vw, 29px); font-weight: 800; letter-spacing: -0.02em; }
+    .card p { margin: 0 0 16px; color: var(--muted); font-size: 15px; }
+    .close-btn { width: 100%; appearance: none; border: 0; border-radius: 14px; padding: 14px 16px; cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #fff; background: linear-gradient(90deg, var(--btn1), var(--btn2)); }
+
+    @media (max-width: 560px) {
+      .wheel-stage { width: min(94vw, 430px); }
+      .pointer { border-left-width: 15px; border-right-width: 15px; border-top-width: 28px; }
+      .stud { width: 9px; height: 9px; }
+      .segment-label { width: 102px; height: 48px; font-size: 13px; padding: 6px 8px; border-radius: 12px; }
+      .hub { width: 31%; }
+      .hub-glow { width: 39%; }
+      .brand-badge { font-size: 8px; padding: 5px 8px 4px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="wrap" aria-label="EMCD luxury prize wheel">
+      <div class="wheel-stage">
+        <div class="aura" aria-hidden="true"></div>
+        <div class="pointer" aria-hidden="true"></div>
+        <div class="frame" aria-hidden="true"></div>
+        <div id="studRing" class="stud-ring" aria-hidden="true"></div>
+
+        <div class="wheel" aria-label="Prize wheel">
+          <div id="segmentsLayer" class="segments-layer"></div>
+          <div id="labelsLayer" class="labels-layer"></div>
+        </div>
+
+        <div class="hub-glow" aria-hidden="true"></div>
+        <div class="hub" aria-hidden="true">
+          <div class="brand">
+            <img src="data:image/png;base64,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" alt="EMCD" />
+            <div class="brand-badge">Expo Spin</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="spinButton" class="spin-btn" type="button">Spin</button>
+        <div id="resultText" class="result" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="resultModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="card">
+      <img src="data:image/png;base64,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" alt="EMCD" />
+      <h2 id="winTitle">You won</h2>
+      <div id="prizeName" class="prize">Prize</div>
+      <p>Congratulations!</p>
+      <button id="closeModal" class="close-btn" type="button">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const prizes = [
+      { name: 'Tote bags', stock: 42, colors: ['#9b67ff', '#6c31ff'] },
+      { name: 'Bitcoin candies', stock: 200, colors: ['#824bff', '#5821db'] },
+      { name: 'Tangem wallets', stock: 15, colors: ['#7239ea', '#4515b8'] },
+      { name: 'Water bottles', stock: 13, colors: ['#5f29d3', '#37108e'] },
+      { name: 'Socks', stock: 20, colors: ['#7b42ff', '#5520c7'] },
+      { name: 'Pins', stock: 30, colors: ['#a56bff', '#6d2bf0'] }
+    ];
+
+    const segmentsLayer = document.getElementById('segmentsLayer');
+    const labelsLayer = document.getElementById('labelsLayer');
+    const studRing = document.getElementById('studRing');
+    const spinButton = document.getElementById('spinButton');
+    const resultText = document.getElementById('resultText');
+    const resultModal = document.getElementById('resultModal');
+    const prizeName = document.getElementById('prizeName');
+    const closeModal = document.getElementById('closeModal');
+
+    const segmentAngle = 360 / prizes.length;
+    let spinning = false;
+    let currentRotation = 0;
+
+    function clipPolygon(startDeg, endDeg) {
+      const s = (startDeg - 90) * Math.PI / 180;
+      const e = (endDeg - 90) * Math.PI / 180;
+      const x1 = 50 + 50 * Math.cos(s);
+      const y1 = 50 + 50 * Math.sin(s);
+      const x2 = 50 + 50 * Math.cos(e);
+      const y2 = 50 + 50 * Math.sin(e);
+      return `polygon(50% 50%, ${x1}% ${y1}%, ${x2}% ${y2}%)`;
+    }
+
+    function prettyName(name) {
+      const parts = name.split(' ');
+      if (parts.length <= 1) return name;
+      if (parts.length === 2) return `${parts[0]}<br>${parts[1]}`;
+      const mid = Math.ceil(parts.length / 2);
+      return `${parts.slice(0, mid).join(' ')}<br>${parts.slice(mid).join(' ')}`;
+    }
+
+    function buildWheel() {
+      const size = segmentsLayer.clientWidth;
+      const center = size / 2;
+      const labelRadius = size * 0.31;
+
+      prizes.forEach((prize, index) => {
+        const start = index * segmentAngle;
+        const end = start + segmentAngle;
+        const segment = document.createElement('div');
+        segment.className = 'segment';
+        segment.style.clipPath = clipPolygon(start, end);
+        segment.style.background = `linear-gradient(180deg, ${prize.colors[0]}, ${prize.colors[1]})`;
+        segmentsLayer.appendChild(segment);
+      });
+
+      for (let i = 0; i < prizes.length; i++) {
+        const divider = document.createElement('div');
+        divider.className = 'divider';
+        divider.style.transform = `translate(-50%, 0) rotate(${i * segmentAngle}deg)`;
+        segmentsLayer.appendChild(divider);
+      }
+
+      prizes.forEach((prize, index) => {
+        const angleDeg = index * segmentAngle + segmentAngle / 2 - 90;
+        const angle = angleDeg * Math.PI / 180;
+        const x = center + Math.cos(angle) * labelRadius;
+        const y = center + Math.sin(angle) * labelRadius;
+
+        const label = document.createElement('div');
+        label.className = 'segment-label';
+        label.style.left = `${x}px`;
+        label.style.top = `${y}px`;
+        label.style.transform = `translate(-50%, -50%) rotate(${angleDeg}deg)`;
+        label.innerHTML = prettyName(prize.name);
+        labelsLayer.appendChild(label);
+      });
+    }
+
+    function buildStuds() {
+      const radius = (segmentsLayer.clientWidth / 2) + 2;
+      const count = 18;
+      for (let i = 0; i < count; i++) {
+        const stud = document.createElement('div');
+        stud.className = 'stud';
+        const angle = (360 / count) * i;
+        stud.style.transform = `translate(-50%, -50%) rotate(${angle}deg) translateY(-${radius}px)`;
+        studRing.appendChild(stud);
+      }
+    }
+
+    function secureRandomFloat() {
+      const array = new Uint32Array(1);
+      crypto.getRandomValues(array);
+      return array[0] / 4294967296;
+    }
+
+    function weightedPick() {
+      // Balanced weighted random:
+      // rarer prizes still drop less often, but very large stock items do not dominate too aggressively.
+      const exponent = 0.65;
+      const weights = prizes.map(prize => Math.pow(prize.stock, exponent));
+      const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+      const threshold = secureRandomFloat() * totalWeight;
+      let running = 0;
+      for (let i = 0; i < weights.length; i++) {
+        running += weights[i];
+        if (threshold < running) return i;
+      }
+      return weights.length - 1;
+    }
+
+    function showResult(index) {
+      const selected = prizes[index];
+      resultText.textContent = `Result: ${selected.name}`;
+      prizeName.textContent = selected.name;
+      resultModal.classList.add('open');
+    }
+
+    function closeResult() { resultModal.classList.remove('open'); }
+
+    function spin() {
+      // Keep the visual stop position synchronized with the prize shown in the modal.
+      if (spinning) return;
+      spinning = true;
+      spinButton.disabled = true;
+      resultText.textContent = '';
+
+      const selectedIndex = weightedPick();
+      const extraSpins = 7 + Math.floor(secureRandomFloat() * 3);
+      const targetAngle = (360 - (selectedIndex * segmentAngle + segmentAngle / 2)) % 360;
+      const currentNormalized = ((currentRotation % 360) + 360) % 360;
+      const deltaToTarget = (targetAngle - currentNormalized + 360) % 360;
+      currentRotation += extraSpins * 360 + deltaToTarget;
+
+      const rotation = `rotate(${currentRotation}deg)`;
+      segmentsLayer.style.transform = rotation;
+      labelsLayer.style.transform = rotation;
+
+      setTimeout(() => {
+        showResult(selectedIndex);
+        spinning = false;
+        spinButton.disabled = false;
+      }, 6050);
+    }
+
+    spinButton.addEventListener('click', spin);
+    closeModal.addEventListener('click', closeResult);
+    resultModal.addEventListener('click', (event) => { if (event.target === resultModal) closeResult(); });
+
+    buildWheel();
+    buildStuds();
+  </script>
+</body>
+</html>
